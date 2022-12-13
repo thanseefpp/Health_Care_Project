@@ -1,4 +1,4 @@
-# Project Title
+# Multiple Disease Predictive System
 
 ## Table of Contents
 

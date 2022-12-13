@@ -1,13 +1,14 @@
 import streamlit as st
 import pickle
 from streamlit_option_menu import option_menu
-
+import numpy as np
 
 # Loading Saved Machine Learning Model
 
 heart_disease_model_data = pickle.load(open("models/heart_disease_model.sav",'rb'))
 diabetes_model_data = pickle.load(open("models/diabetes_model.sav",'rb'))
 parkinsons_model_data = pickle.load(open("models/parkinsons_model.sav",'rb'))
+standardized_parkinsons_model = pickle.load(open("models/parkinsons_trained_sc.sav","rb"))
 
 
 #sidebar option turn on
@@ -111,5 +112,77 @@ if (selected == 'Parkinsons'):
     #tile will change to this
     st.title("Parkinsons Disease ML Predictive System")
     
+    col1,col2 = st.columns(2)
     
+    with col1:
+        MDVP_Fo_Hz = st.text_input("MDVP:Fo(Hz)")
+    with col2:
+        MDVP_Fhi_Hz = st.text_input("MDVP:Fhi(Hz)")
+    with col1:
+        MDVP_Flo_Hz = st.text_input("MDVP:Flo(Hz)")
+    with col2:
+        MDVP_jitter_perc = st.text_input("MDVP:Jitter(%)")
+    with col1:
+        MDVP_jitter_abs = st.text_input("MDVP:Jitter(Abs)")
+    with col2:
+        MDVP_RAP = st.text_input("MDVP:RAP")
+    with col1:
+        MDVP_PPQ = st.text_input("MDVP:PPQ")
+    with col2:
+        Jitter_DDP = st.text_input("Jitter:DDP")
+    with col1:
+        MDVP_Shimmer = st.text_input("MDVP:Shimmer")
+    with col2:
+        MDVP_Shimmer_dB = st.text_input("MDVP:Shimmer(dB)")
+    with col1:
+        Shimmer_APQ3 = st.text_input("Shimmer:APQ3")
+    with col2:
+        Shimmer_APQ5 = st.text_input("Shimmer:APQ5")
+    with col1:
+        MDVP_APQ = st.text_input("MDVP:APQ")
+    with col2:
+        Shimmer_DDA = st.text_input("Shimmer:DDA")
+    with col1:
+        NHR = st.text_input("NHR")
+    with col2:
+        HNR = st.text_input("HNR")
+    with col1:
+        RPDE = st.text_input("RPDE")
+    with col2:
+        DFA = st.text_input("DFA")
+    with col1:
+        spread1 = st.text_input("spread1")
+    with col2:
+        spread2 = st.text_input("spread2")
+    with col1:
+        D2 = st.text_input("D2")
+    with col2:
+        PPE = st.text_input("PPE")
+    # 116.67600,137.87100,111.36600,0.00997,0.00009,0.00502,0.00698,0.01505,0.05492,0.51700,0.02924,0.04005,0.03772,0.08771,0.01353,20.64400,0.434969,0.819235,-4.117501,0.334147,2.405554,0.368975
+    
+    diagnose_result = ""
+    #creating a button to get the result
+    if st.button("Get Result"):
+        input_data = (float(MDVP_Fo_Hz),float(MDVP_Fhi_Hz),float(MDVP_Flo_Hz),float(MDVP_jitter_perc),float(MDVP_jitter_abs),
+                    float(MDVP_RAP),float(MDVP_PPQ),float(Jitter_DDP),float(MDVP_Shimmer),float(MDVP_Shimmer_dB),
+                    float(Shimmer_APQ3),float(Shimmer_APQ5),float(MDVP_APQ),float(Shimmer_DDA),float(NHR),
+                    float(HNR),float(RPDE),float(DFA),float(spread1),float(spread2),float(D2),float(PPE))
 
+        # converting dataset into numpy array
+        data_converted = np.asarray(input_data)
+
+        # reshaping the data into 1,-1 to avoid the error
+
+        reshaped_data = data_converted.reshape(1,-1)
+        # standardizing the data
+        standardized_data = standardized_parkinsons_model.transform(reshaped_data)
+        #svc model used to predict the result
+        predicted_result = parkinsons_model_data.predict(standardized_data)
+
+        if predicted_result[0] == 0:
+            diagnose_result = "This Person is Healthy"
+        else:
+            diagnose_result = "This Person is Having Parkinsons "
+    
+    if diagnose_result != "":
+        st.success(diagnose_result)
