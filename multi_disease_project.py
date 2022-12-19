@@ -13,7 +13,7 @@ standardized_parkinsons_model = pickle.load(open("models/parkinsons_trained_sc.s
 
 #sidebar option turn on
 with st.sidebar:
-    selected = option_menu("Predictive System",
+    selected = option_menu("Health Care \nPredictive System",
                     ["Heart Disease",
                     "Diabetes",
                     "Parkinsons"],

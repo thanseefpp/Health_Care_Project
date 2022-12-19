@@ -1,4 +1,4 @@
-# Multiple Disease Predictive System
+# Health Care Predictive System
 
 ## Table of Contents
 
