@@ -27,4 +27,4 @@ pip3 install -r requirements.txt
 
 In case you get any errors, try Stackoverflow.
 
-please follow my instagram @thanseeftsf and ask any doubts.
+please follow my instagram [@thanseeftsf](https://www.instagram.com/thanseeftsf/) and ask any doubts.
