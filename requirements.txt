@@ -3,3 +3,4 @@ streamlit-option-menu
 pickle5
 scikit-learn
 numpy
+pymongo

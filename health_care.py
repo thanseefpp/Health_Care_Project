@@ -2,27 +2,46 @@ import streamlit as st
 import pickle
 from streamlit_option_menu import option_menu
 import numpy as np
+from pymongo import MongoClient
+import pandas as pd
 
 # Loading Saved Machine Learning Model
-
 heart_disease_model_data = pickle.load(open("models/heart_disease_model.sav",'rb'))
 diabetes_model_data = pickle.load(open("models/diabetes_model.sav",'rb'))
 parkinsons_model_data = pickle.load(open("models/parkinsons_model.sav",'rb'))
 standardized_parkinsons_model = pickle.load(open("models/parkinsons_trained_sc.sav","rb"))
 
+#loading MongoDB database from server
+def get_database():
+    login = 'thanseef'
+    password = 'asd12345'
+    host = 'mydatabase.vdoh6jz.mongodb.net'
+    db = 'Healthcare'
+    uri = f'mongodb+srv://{login}:{password}@{host}/{db}?retryWrites=true&w=majority'
+    client = MongoClient(uri, authsource='admin')#, connect=False)
+    return client
 
-#sidebar option turn on
-with st.sidebar:
-    selected = option_menu("Health Care \nPredictive System",
-                    ["Heart Disease",
-                    "Diabetes",
-                    "Parkinsons"],
-                    icons=["heart","activity","person"],
-                    default_index=0)
+st.set_page_config(
+    page_title="HealthCare",
+    page_icon="👨🏻‍💻",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': 'https://thanseefuddeen.xyz/',
+        'Report a bug': 'https://www.linkedin.com/in/thanseefpp/',
+        'About': """
+                # Thanks
+                #### Please Go through it.
+                Made by [@thanseeftsf](https://github.com/thanseefpp)
+            """
+    }
+)
+
+
     
     
 #based on user selection this filter will change
-if (selected == 'Heart Disease'):
+def Heart_disease_health_checkup():
     #tile will change to this
     st.title("Heart Disease ML Predictive System")
     
@@ -65,13 +84,33 @@ if (selected == 'Heart Disease'):
         if predicted_result[0] == 0:
             diagnose_result = "This Person is Healthy"
         else:
+            client = get_database()
+            collection = client.Healthcare.get_collection('heart_disease_collection')
             diagnose_result = "This Person is have Heart Disease"
+            records = {
+                "age" : age,
+                "sex" : sex,
+                "cp"  : cp,
+                "trestbps" : trestbps,
+                "chol" : chol,
+                "fbs" : fbs,
+                "restecg" : restecg,
+                "thalach": thalach,
+                "exang" : exang,
+                "oldpeak" : oldpeak,
+                "slope" : slope,
+                "ca" : ca,
+                "thal" : thal,
+                "status" : "Heart Patient"
+            }
+            t = collection.insert_one(records)
+            print(t)
     
     if diagnose_result != "":
         st.success(diagnose_result)
     
     
-if (selected == 'Diabetes'):
+def diabetes_health_checkup():
     #tile will change to this
     st.title("Diabetes Disease ML Predictive System")
     
@@ -103,15 +142,31 @@ if (selected == 'Diabetes'):
         if predicted_result[0] == 0:
             diagnose_result = "This Person is Healthy"
         else:
+            client = get_database()
+            collection = client.Healthcare.get_collection('diagnose_collection')
             diagnose_result = "This Person is Having Diabetes"
+            records = {
+                "Pregnancies" : Pregnancies,
+                "Glucose" : Glucose,
+                "BloodPressure"  : BloodPressure,
+                "SkinThickness" : SkinThickness,
+                "Insulin": Insulin,
+                "BMI": BMI,
+                "DiabetesPedigreeFunction": DiabetesPedigreeFunction,
+                "Age": Age,
+                "status" : "Patient"
+            }
+            t = collection.insert_one(records)
+            print(t)
     
     if diagnose_result != "":
         st.success(diagnose_result)
-    
-if (selected == 'Parkinsons'):
+
+        
+
+def parkinsons_health_checkup():
     #tile will change to this
     st.title("Parkinsons Disease ML Predictive System")
-    
     col1,col2 = st.columns(2)
     
     with col1:
@@ -182,7 +237,152 @@ if (selected == 'Parkinsons'):
         if predicted_result[0] == 0:
             diagnose_result = "This Person is Healthy"
         else:
-            diagnose_result = "This Person is Having Parkinsons "
+            diagnose_result = "This Person is Having Parkinsons"
+            client = get_database()
+            collection = client.Healthcare.get_collection('parkinsons_collection')
+            records = {
+                "MDVP_Fo_Hz" : MDVP_Fo_Hz,
+                "MDVP_Fhi_Hz" : MDVP_Fhi_Hz,
+                "MDVP_Flo_Hz"  : MDVP_Flo_Hz,
+                "MDVP_jitter_perc" : MDVP_jitter_perc,
+                "MDVP_jitter_abs": MDVP_jitter_abs,
+                "MDVP_RAP": MDVP_RAP,
+                "MDVP_PPQ": MDVP_PPQ,
+                "Jitter_DDP": Jitter_DDP,
+                "MDVP_Shimmer" : MDVP_Shimmer,
+                "MDVP_Shimmer_dB" : MDVP_Shimmer_dB,
+                "Shimmer_APQ3" : Shimmer_APQ3,
+                "Shimmer_APQ5" : Shimmer_APQ5,
+                "MDVP_APQ" : MDVP_APQ,
+                "Shimmer_DDA" : Shimmer_DDA,
+                "NHR" : NHR,
+                "HNR" : HNR,
+                "RPDE" : RPDE,
+                "DFA" : DFA,
+                "spread1" : spread1,
+                "spread2" : spread2,
+                "D2" : D2,
+                "PPE" : PPE,
+                "status" : "Patient"
+            }
+            t = collection.insert_one(records)
+            print(t)
+            
     
     if diagnose_result != "":
         st.success(diagnose_result)
+        
+def Heart_disease_health_database():
+    client = get_database()
+    collection = client.Healthcare.get_collection('heart_disease_collection')
+    records = []
+    for record in collection.aggregate([{"$project":{ "_id": 0}}]):
+        records.append(record)
+    df = pd.DataFrame(
+    data=records)
+    st.table(df)
+        
+
+def diabetes_health_database():
+    client = get_database()
+    collection = client.Healthcare.get_collection('diagnose_collection')
+    records = []
+    for record in collection.aggregate([{"$project":{ "_id": 0}}]):
+        records.append(record)
+    df = pd.DataFrame(
+    data=records)
+    st.table(df)
+
+def parkinsons_health_database():
+    client = get_database()
+    collection = client.Healthcare.get_collection('parkinsons_collection')
+    records = []
+    for record in collection.aggregate([{"$project":{ "_id": 0}}]):
+        records.append(record)
+    df = pd.DataFrame(
+    data=records)
+    st.table(df)
+
+menu = {
+    'title': 'Health Care \nPredictive System',
+    'items': { 
+        'Heart Disease' : {
+            'action': None, 'item_icon': 'heart', 'submenu': {
+                'title': None,
+                'items': { 
+                    'Predict Result' : {'action': Heart_disease_health_checkup, 'item_icon': 'heart', 'submenu': None},
+                    'Heart Patients Database' : {'action': Heart_disease_health_database, 'item_icon': 'person-lines-fill', 'submenu': None},
+                },
+                'menu_icon': None,
+                'default_index': 0,
+                'with_view_panel': 'main',
+                'orientation': 'horizontal'
+            }
+        },
+        'Diabetes' : {
+            'action': None, 'item_icon': 'activity', 'submenu': {
+                'title': None,
+                'items': { 
+                    'Predict Result' : {'action': diabetes_health_checkup, 'item_icon': 'activity', 'submenu': None},
+                    'Diabetes Patients Database' : {'action': diabetes_health_database, 'item_icon': 'person-lines-fill', 'submenu': None},
+                },
+                'menu_icon': None,
+                'default_index': 0,
+                'with_view_panel': 'main',
+                'orientation': 'horizontal'
+            }
+        },
+        'Parkinsons' : {
+            'action': None, 'item_icon': 'person', 'submenu': {
+                'title': None,
+                'items': {
+                    'Predict Result' : {'action': parkinsons_health_checkup, 'item_icon': 'person', 'submenu': None},
+                    'Parkinsons Patients Database' : {'action': parkinsons_health_database, 'item_icon': 'person-lines-fill', 'submenu': None},
+                },
+                'menu_icon': None,
+                'default_index': 0,
+                'with_view_panel': 'main',
+                'orientation': 'horizontal'
+            }
+        }
+    },
+    'menu_icon': 'menu-button-wide-fill',
+    'default_index': 0,
+    'with_view_panel': 'sidebar',
+    'orientation': 'vertical'
+}
+
+def show_menu(menu):
+    def _get_options(menu):
+        options = list(menu['items'].keys())
+        return options
+
+    def _get_icons(menu):
+        icons = [v['item_icon'] for _k, v in menu['items'].items()]
+        return icons
+
+    kwargs = {
+        'menu_title': menu['title'] ,
+        'options': _get_options(menu),
+        'icons': _get_icons(menu),
+        'menu_icon': menu['menu_icon'],
+        'default_index': menu['default_index'],
+        'orientation': menu['orientation']
+    }
+    
+    with_view_panel = menu['with_view_panel']
+    if with_view_panel == 'sidebar':
+        with st.sidebar:
+            menu_selection = option_menu(**kwargs)
+    elif with_view_panel == 'main':
+        menu_selection = option_menu(**kwargs)
+    else:
+        raise ValueError(f"Unknown view panel value: {with_view_panel}. Must be 'sidebar' or 'main'.")
+
+    if menu['items'][menu_selection]['submenu']:
+        show_menu(menu['items'][menu_selection]['submenu'])
+
+    if menu['items'][menu_selection]['action']:
+        menu['items'][menu_selection]['action']()
+
+show_menu(menu)
