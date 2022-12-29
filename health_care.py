@@ -37,9 +37,6 @@ st.set_page_config(
     }
 )
 
-
-    
-    
 #based on user selection this filter will change
 def Heart_disease_health_checkup():
     #tile will change to this
